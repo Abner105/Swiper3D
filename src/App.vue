@@ -1,26 +1,32 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div id="app">
+    <swiper-3-d></swiper-3-d>
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import Swiper3D from "./components/Swiper3D.vue";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    HelloWorld
-  }
-}
+    Swiper3D,
+  },
+};
 </script>
 
 <style>
+*{
+  margin: 0;
+  padding: 0;
+}
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  /* background-color: rgb(255, 213, 177); */
+  background-image: url(./assets/img/hzw.jpg);
+  position: relative;
+  width: 1050px;
+  height: 400px;
+  /* background-color: aquamarine; */
+  margin: 0 auto;
 }
 </style>
