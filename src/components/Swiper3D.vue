@@ -1,13 +1,14 @@
 <template>
   <div class="banner-box">
+    <!-- <div>{{source}}</div> -->
     <div class="wrapper">
-      <div class="slide">
-        <img src="../assets/img/1.jpg" alt="" />
-        <div class="mark activate"></div>
+      <div v-for="item in source" :key="item.id" :class="item.className" :style="item.sty">
+        <img :src="item.pic" alt="" />
+        <div class="mark"></div>
         <p class="detail">
-          <span>蒙奇·D·路飞</span>
-          <span>身份：草帽海贼团船长</span>
-          <span>梦想：找到ONE PIECE，成为海贼王</span>
+          <span>{{item.name}}</span>
+          <span>身份：{{item.descript.identity}}</span>
+          <span>梦想：{{item.descript.dream}}</span>
         </p>
       </div>
     </div>
@@ -17,8 +18,90 @@
 </template>
 
 <script>
+import { reactive, toRefs } from '@vue/reactivity';
 export default {
   name: "Swiper3D",
+  props: {
+    source: {
+      type: Array,
+      required: true,
+      default() {
+        return [];
+      },
+    },
+    initial: {
+      type: Number,
+      default: 0,
+    },
+    interval: {
+      type: Number,
+      default: 2000,
+    },
+  },
+  setup(props) {
+    // 获取父组件的数据
+    let source = props.source;
+    // 商品数据不足5个 补足5个
+    let diff = 5 - source.length;
+    if (diff > 0 && diff !== 4) {
+      for (let i = 0; i < diff; i++) {
+        source.push({
+          ...source[i],
+          id: parseInt(source[source.length - 1].id + 1),
+        });
+      }
+    }
+
+    // 处理每一项的样式
+    const computed = (initial, source) => {
+      if (initial < 0) initial = 0;
+      let len = source.length,
+        temp1 = initial - 2 < 0 ? initial - 2 + len : initial - 2,
+        temp2 = initial - 1 < 0 ? initial - 1 + len : initial - 1,
+        temp3 = initial,
+        temp4 = initial + 1 >= len ? initial + 1 - len : initial + 1,
+        temp5 = initial + 2 >= len ? initial + 2 - len : initial + 2;
+      return source.map((item, index) => {
+        let transform = `translate(-50%, -50%) scale(1)`,
+          zIndex = 0,
+          className = "slide";
+        switch (index) {
+          case temp3:
+            className = ["slide","activate"];
+            zIndex = 3
+            break;
+          case temp1:
+            transform = `translate(-200%, -50%) scale(0.7)`;
+            zIndex = 1;
+            break;
+          case temp5:
+            transform = `translate(100%, -50%) scale(0.7)`;
+            zIndex = 1;
+            break;
+          case temp2:
+            transform = `translate(-130%, -50%) scale(0.85)`;
+            zIndex = 2;
+            break;
+          case temp4:
+            transform = `translate(30%, -50%) scale(0.85)`;
+            zIndex = 2;
+            break;
+        }
+        item.sty = {
+          transform,
+          zIndex
+        }
+        item.className = className
+        return item
+      });
+
+    };
+    source = computed(props.initial,source)
+    let data = reactive(source)
+    return{
+      ...toRefs(data)
+    }
+  },
 };
 </script>
 
@@ -30,7 +113,7 @@ export default {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: rgba(0, 0, 0,0.5);
+  background-color: rgba(0, 0, 0, 0.5);
 }
 .wrapper {
   width: 100%;
@@ -58,9 +141,12 @@ img {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.5);
 }
-.activate,
 .mark:hover {
   background-color: rgba(0, 0, 0, 0);
+}
+
+.activate .mark {
+  background-color: rgba(0, 0, 0, 0); 
 }
 .detail {
   display: flex;
@@ -76,7 +162,7 @@ img {
   font-size: 14px;
   width: 100%;
 }
-.detail span{
+.detail span {
   margin: 2px 10px;
 }
 .slide:hover .detail {
