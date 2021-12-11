@@ -2,13 +2,18 @@
   <div class="banner-box">
     <!-- <div>{{source}}</div> -->
     <div class="wrapper">
-      <div v-for="item in source" :key="item.id" :class="item.className" :style="item.sty">
+      <div
+        v-for="item in data.source"
+        :key="item.id"
+        :class="item.className"
+        :style="item.sty"
+      >
         <img :src="item.pic" alt="" />
         <div class="mark"></div>
         <p class="detail">
-          <span>{{item.name}}</span>
-          <span>身份：{{item.descript.identity}}</span>
-          <span>梦想：{{item.descript.dream}}</span>
+          <span>{{ item.descript.name }}</span>
+          <span>身份：{{ item.descript.identity }}</span>
+          <span>梦想：{{ item.descript.dream }}</span>
         </p>
       </div>
     </div>
@@ -18,7 +23,9 @@
 </template>
 
 <script>
-import { reactive, toRefs } from '@vue/reactivity';
+import { reactive, toRefs } from "@vue/reactivity";
+import { watch } from "vue";
+import { onMounted } from "@vue/runtime-core";
 export default {
   name: "Swiper3D",
   props: {
@@ -54,6 +61,7 @@ export default {
 
     // 处理每一项的样式
     const computed = (initial, source) => {
+      // console.log('处理样式')
       if (initial < 0) initial = 0;
       let len = source.length,
         temp1 = initial - 2 < 0 ? initial - 2 + len : initial - 2,
@@ -67,8 +75,8 @@ export default {
           className = "slide";
         switch (index) {
           case temp3:
-            className = ["slide","activate"];
-            zIndex = 3
+            className = ["slide", "activate"];
+            zIndex = 3;
             break;
           case temp1:
             transform = `translate(-200%, -50%) scale(0.7)`;
@@ -89,18 +97,45 @@ export default {
         }
         item.sty = {
           transform,
-          zIndex
-        }
-        item.className = className
-        return item
+          zIndex,
+        };
+        item.className = className;
+        return item;
       });
-
     };
-    source = computed(props.initial,source)
-    let data = reactive(source)
-    return{
-      ...toRefs(data)
-    }
+    source = computed(props.initial, source);
+    let data = reactive({
+      initial: props.initial,
+      source,
+    });
+    // 监听data.initial变化，每次变化 重新渲染样式
+    watch(
+      () => data.initial,
+      (newV, oldV) => {
+        // console.log(newV);
+        data.source = computed(newV, data.source);
+        // console.log(data.source)
+      }
+    );
+    // 处理自动轮播
+    let timer = null;
+    const autoPlay = () => {
+      timer = setInterval(() => {
+        // console.log(data.initial);
+        data.initial++;
+        // console.log(data.source.length)
+        if (data.initial >= data.source.length) {
+          data.initial = 0;
+        }
+      }, props.interval);
+    };
+    onMounted(() => {
+      clearInterval(timer)
+      autoPlay();
+    });
+    return {
+      data,
+    };
   },
 };
 </script>
@@ -146,7 +181,7 @@ img {
 }
 
 .activate .mark {
-  background-color: rgba(0, 0, 0, 0); 
+  background-color: rgba(0, 0, 0, 0);
 }
 .detail {
   display: flex;
