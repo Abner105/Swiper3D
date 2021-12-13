@@ -1,12 +1,13 @@
 <template>
-  <div class="banner-box">
+  <div class="banner-box" ref="root">
     <!-- <div>{{source}}</div> -->
     <div class="wrapper">
       <div
-        v-for="item in data.source"
+        v-for="(item, index) in data.source"
         :key="item.id"
         :class="item.className"
         :style="item.sty"
+        @click="slideClick(index)"
       >
         <img :src="item.pic" alt="" />
         <div class="mark"></div>
@@ -17,15 +18,16 @@
         </p>
       </div>
     </div>
-    <a href="javascript:;" class="left"></a>
-    <a href="javascript:;" class="right"></a>
+    <a href="javascript:;" class="left" @click="changeSlide('left')"></a>
+    <a href="javascript:;" class="right" @click="changeSlide('right')"></a>
   </div>
 </template>
 
 <script>
-import { reactive, toRefs } from "@vue/reactivity";
+import { reactive, ref, toRefs } from "@vue/reactivity";
 import { watch } from "vue";
 import { onMounted } from "@vue/runtime-core";
+import debounce from "../tool/debounce"
 export default {
   name: "Swiper3D",
   props: {
@@ -70,11 +72,12 @@ export default {
         temp4 = initial + 1 >= len ? initial + 1 - len : initial + 1,
         temp5 = initial + 2 >= len ? initial + 2 - len : initial + 2;
       return source.map((item, index) => {
-        let transform = `translate(-50%, -50%) scale(1)`,
+        let transform = `translate(-50%, -50%) scale(0.7)`,
           zIndex = 0,
           className = "slide";
         switch (index) {
           case temp3:
+            transform = `translate(-50%, -50%) scale(1)`;
             className = ["slide", "activate"];
             zIndex = 3;
             break;
@@ -129,12 +132,40 @@ export default {
         }
       }, props.interval);
     };
+    // 鼠标移入移除效果
+    let root = ref(null);
     onMounted(() => {
-      clearInterval(timer)
+      clearInterval(timer);
       autoPlay();
+      const box = root.value;
+      box.onmouseenter = () => clearInterval(timer);
+      box.onmouseleave = () => autoPlay();
     });
+    // 点击哪张图片 哪张图片就到第一个
+    function slideClick(index) {
+      data.initial = index;
+    }
+
+    // 点击左右按钮切换图片
+    function h(dir) {
+      if (dir === "left") {
+        clearInterval(timer)
+        data.initial++;
+        data.initial >= data.source.length ? (data.initial = 0) : false;
+        return;
+      }
+      data.initial--;
+      data.initial < 0 ? (data.initial = data.source.length-1) : false;
+    }
+    // 左右切换图片设置防抖效果
+    function changeSlide(dir){
+      debounce(h,200,dir)
+    }
     return {
       data,
+      root,
+      slideClick,
+      changeSlide,
     };
   },
 };
@@ -154,6 +185,7 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
+  /* transition: 0.5s; */
 }
 .slide {
   width: 25%;
@@ -162,6 +194,8 @@ export default {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  transition: 0.5s;
+  box-shadow: 0 0 4px black;
   /* background-color: azure; */
 }
 img {
